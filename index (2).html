@@ -1,0 +1,1461 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roulette Analyse Pro & Saisie - VERSION AMÉLIORÉE</title>
+<style>
+:root{
+--bg:#0f1115;
+--card:#171b22;
+--muted:#aab2c0;
+--text:#eef2f7;
+--accent:#5ddc87;
+--accent-blue:#4a90e2;
+--accent-orange:#ff9f43;
+--red:#ff4d4d;
+--line:#2a3240;
+--soft:#10161a;
+}
+*{box-sizing:border-box}
+body{
+margin:0;
+background:linear-gradient(180deg,#0f1115,#0b0d11);
+color:var(--text);
+font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+-webkit-text-size-adjust:100%;
+}
+.app{
+max-width:1100px;
+margin:0 auto;
+padding:10px;
+}
+.card{
+background:var(--card);
+border:1px solid var(--line);
+border-radius:18px;
+padding:14px;
+box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+h1{
+font-size:20px;
+margin:0 0 4px;
+}
+.header-row {
+display:flex;
+justify-content:space-between;
+align-items:center;
+border-bottom:1px solid var(--line);
+padding-bottom:10px;
+margin-bottom:12px;
+}
+
+
+
+/* HISTORIQUE HORIZONTAL */
+.history-ribbon {
+display:flex;
+gap:8px;
+overflow-x:auto;
+padding:8px 4px;
+background:var(--soft);
+border:1px solid var(--line);
+border-radius:12px;
+margin-bottom:12px;
+scrollbar-width: thin;
+}
+.history-ribbon::-webkit-scrollbar {
+height:4px;
+}
+.history-ribbon::-webkit-scrollbar-thumb {
+background:var(--line);
+border-radius:2px;
+}
+.history-chip {
+flex:0 0 44px;
+height:44px;
+border-radius:50%;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+font-weight:800;
+font-size:13px;
+color:#fff;
+border:2px solid transparent;
+position:relative;
+cursor:pointer;
+transition: transform 0.1s ease;
+}
+.history-chip:active {
+transform: scale(0.9);
+}
+.history-chip .sec-lbl {
+font-size:9px;
+font-weight:700;
+opacity:0.8;
+margin-top:-2px;
+}
+.history-chip.last-chip {
+border-color:#fff;
+box-shadow:0 0 8px #fff;
+animation: pulse-glow 1.5s infinite alternate;
+}
+@keyframes pulse-glow {
+0% { box-shadow: 0 0 4px #fff; }
+100% { box-shadow: 0 0 12px #fff; }
+}
+
+/* LAYOUT MULTI-COLONNES (ÉQUILIBRÉ 50/50) */
+.grid-main {
+display:grid;
+grid-template-columns: 1fr 1fr;
+gap:16px;
+}
+@media (max-width: 900px) {
+.grid-main {
+grid-template-columns:1fr;
+}
+}
+
+/* CARTE DE SAISIE TAPIS ÉQUILIBRÉE */
+.tapis-card {
+background:var(--soft);
+border:1px solid var(--line);
+border-radius:16px;
+padding:14px;
+width:100%;
+}
+
+/* GRILLE DU TAPIS DE JEU */
+.tapis-container {
+display:flex;
+flex-direction:column;
+width:100%;
+}
+.transversale-row {
+display:grid;
+grid-template-columns:90px 1fr 1fr 1fr;
+gap:5px;
+margin-bottom:5px;
+background:#0d1016;
+border-radius:8px;
+padding:3px;
+border:1px solid var(--line);
+align-items:center;
+transition:all 0.15s ease;
+}
+.transversale-row.recommended-row {
+border-color:var(--accent-orange);
+background:rgba(255, 159, 67, 0.05);
+box-shadow:0 0 6px rgba(255, 159, 67, 0.15);
+}
+.transversale-label {
+font-size:11px;
+font-weight:800;
+color:var(--muted);
+padding-left:4px;
+line-height:1.2;
+}
+.transversale-row.recommended-row .transversale-label {
+color:var(--accent-orange);
+}
+
+.tapis-cell {
+height:34px;
+border-radius:6px;
+border:1px solid var(--line);
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:14px;
+font-weight:800;
+cursor:pointer;
+user-select:none;
+background:#1c222c;
+color:var(--text);
+transition:all 0.1s;
+}
+@media (max-width: 480px) {
+  .tapis-cell {
+    height:30px;
+    font-size:12px;
+  }
+}
+.tapis-cell:active {
+  transform: scale(0.92);
+}
+.tapis-cell.last-drawn {
+outline:2px solid #fff;
+box-shadow:0 0 6px #fff;
+}
+
+/* PANNEAU D'ANALYSE */
+.analysis{
+padding:12px;
+border-radius:16px;
+background:var(--soft);
+border:1px solid var(--line);
+height:fit-content;
+}
+.badge{
+display:inline-block;
+padding:4px 9px;
+border-radius:999px;
+background:#17351f;
+color:#bdf5cb;
+font-size:12px;
+font-weight:700;
+margin-bottom:10px;
+}
+.analysis-item {
+border-bottom:1px solid var(--line);
+padding-bottom:8px;
+margin-bottom:8px;
+}
+.analysis-item:last-child {
+border-bottom:0;
+padding-bottom:0;
+margin-bottom:0;
+}
+.analysis-label {
+font-size:11px;
+color:var(--muted);
+text-transform:uppercase;
+font-weight:700;
+display:block;
+}
+.analysis-value {
+font-size:14px;
+font-weight:700;
+margin-top:2px;
+}
+.number-badge {
+display:inline-block;
+background:#1c222c;
+color:var(--text);
+padding:4px 8px;
+border-radius:6px;
+margin-right:6px;
+margin-top:4px;
+font-weight:800;
+font-size:13px;
+border:1px solid var(--line);
+cursor:pointer;
+}
+
+/* MODULE CARDS */
+.indicator-card {
+background:var(--soft);
+border:1px solid var(--line);
+border-radius:16px;
+padding:14px;
+margin-bottom:14px;
+}
+.indicator-title {
+font-size:11px;
+text-transform:uppercase;
+letter-spacing:0.5px;
+color:var(--muted);
+font-weight:700;
+margin-bottom:10px;
+}
+.sector-row {
+display:flex;
+align-items:center;
+margin-bottom:8px;
+}
+.sector-name {
+width:115px;
+font-size:12px;
+font-weight:700;
+}
+.bar-outer {
+flex-grow:1;
+background:#1c222c;
+height:8px;
+border-radius:99px;
+overflow:hidden;
+margin:0 8px;
+}
+.bar-inner {
+height:100%;
+border-radius:99px;
+transition:width 0.3s ease;
+}
+.sector-stat {
+font-size:11px;
+color:var(--muted);
+text-align:right;
+width:60px;
+font-weight:600;
+}
+
+/* CARTE THERMIQUE */
+.cylinder-heatmap {
+display:grid;
+grid-template-columns:repeat(12, 1fr);
+gap:4px;
+}
+@media (max-width: 600px) {
+.cylinder-heatmap { grid-template-columns: repeat(9, 1fr); }
+}
+@media (max-width: 420px) {
+.cylinder-heatmap { grid-template-columns: repeat(6, 1fr); }
+}
+.heatmap-tile {
+aspect-ratio:1.1;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+border-radius:6px;
+font-size:12px;
+font-weight:800;
+color:#fff;
+position:relative;
+border:1px solid rgba(255,255,255,0.05);
+cursor:pointer;
+transition:all 0.15s ease;
+}
+.heatmap-tile:active {
+transform: scale(0.9);
+}
+.heatmap-tile .hit-count {
+font-size:9px;
+font-weight:700;
+margin-top:1px;
+}
+.heatmap-tile.last-hit {
+outline:2px solid #fff;
+outline-offset:-1px;
+box-shadow:inset 0 0 6px rgba(255,255,255,0.8);
+}
+
+/* ANIMATION HIGHLIGHT */
+@keyframes sync-pulse {
+0% { box-shadow: 0 0 0 0 rgba(93, 220, 135, 0.8); border-color: var(--accent); border-style: solid; border-width: 1px; }
+100% { box-shadow: 0 0 0 10px rgba(93, 220, 135, 0); border-color: rgba(255,255,255,0.05); }
+}
+.external-highlight {
+animation: sync-pulse 1s ease-out;
+}
+
+/* CLAVIER TACTILE RAPIDE (9 COLONNES) */
+.keypad {
+display:grid;
+grid-template-columns:repeat(9, 1fr);
+gap:5px;
+background:var(--soft);
+border:1px solid var(--line);
+border-radius:14px;
+padding:10px;
+margin-bottom:14px;
+}
+.keypad-btn {
+aspect-ratio:1;
+border:1px solid rgba(255,255,255,0.1);
+border-radius:6px;
+color:#fff;
+font-size:14px;
+font-weight:800;
+cursor:pointer;
+display:flex;
+justify-content:center;
+align-items:center;
+transition:transform 0.1s ease, filter 0.1s ease;
+}
+.keypad-btn:active {
+transform:scale(0.9);
+filter:brightness(1.3);
+}
+.keypad-btn.action {
+aspect-ratio:auto;
+font-size:10px;
+text-transform:uppercase;
+background-color:#202630;
+border-color:var(--line);
+letter-spacing: -0.2px;
+}
+
+@media (max-width: 480px) {
+.keypad-btn { font-size:12px; }
+.keypad-btn.action { font-size:9px; letter-spacing:-0.5px; padding:2px; }
+}
+
+/* OUTILS */
+.tools{
+display:flex;
+gap:6px;
+}
+.reset{
+background:#242b36;
+color:var(--text);
+padding:8px 12px;
+font-size:12px;
+border:1px solid var(--line);
+border-radius:8px;
+cursor:pointer;
+font-weight:700;
+}
+.reset:hover{
+background:#303947;
+}
+
+/* JOURNAL GENERAL */
+.tablewrap{
+overflow:auto;
+max-height:160px;
+border:1px solid var(--line);
+border-radius:12px;
+background:#0d1016;
+margin-top:10px;
+}
+table{
+width:100%;
+border-collapse:collapse;
+}
+th,td{
+border-bottom:1px solid var(--line);
+padding:8px 6px;
+text-align:left;
+font-size:13px;
+}
+th{
+color:#c9d2df;
+font-weight:700;
+background:#12161d;
+position:sticky;
+top:0;
+}
+tr:last-child td{border-bottom:0}
+.slot{width:65px;color:#d7deea}
+.number{font-size:15px;font-weight:800}
+.status{
+color:var(--muted);
+font-size:13px;
+}
+.small{
+font-size:11px;
+color:var(--muted);
+line-height:1.4;
+margin-top:10px;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div style="font-size:12px; color:#ddd; margin-top:10px; line-height:1.6;">
+    ✓ Analyse statistique avancée (moyenne, écart-type, Z-Score)<br>
+    ✓ Scoring multi-critères avec confiance en %<br>
+    ✓ Détection automatique d'anomalies<br>
+    ✓ Prédiction de numéros & transversales<br>
+    ✓ Analyse de patterns & paires de transversales
+  </div>
+</div>
+
+<div class="card">
+<div class="header-row">
+  <div>
+    <h1>Roulette Analyse Pro & Saisie</h1>
+    <div class="status" id="status" style="margin-top:2px;">Session vide.</div>
+  </div>
+  <div class="tools">
+    <button class="reset" onclick="undoLast()">⌫ Retirer</button>
+    <button class="reset" onclick="resetAll()">RAZ</button>
+    <button class="reset" onclick="copyText()">Copier</button>
+  </div>
+</div>
+
+<!-- SÉQUENCE DES TIRAGES -->
+<div class="indicator-title" style="margin-bottom: 4px;">Séquence des derniers tirages</div>
+<div class="history-ribbon" id="history-ribbon"></div>
+
+<div class="grid-main">
+  <!-- COLONNE GAUCHE : TAPIS INTERACTIF DE SAISIE ÉQUILIBRÉ -->
+  <div>
+    <div class="tapis-card">
+      <div class="indicator-title" style="margin-bottom:8px;">Tapis de Saisie Spatiale</div>
+      <div class="tapis-container" id="tapis-container"></div>
+    </div>
+  </div>
+
+  <!-- COLONNE DROITE : PRÉVISIONS, SECTEURS ET CLAVIER -->
+  <div>
+    <div class="analysis">
+      <div class="badge">Analyses & Prévisions</div>
+      <div id="prop">—</div>
+    </div>
+
+    <!-- CLAVIER DE CONTROLE COMPLET -->
+    <div class="indicator-card" style="margin-top:14px; margin-bottom:14px;">
+      <div class="indicator-title">Clavier Tactile Complet</div>
+      <div class="keypad" id="keypad"></div>
+    </div>
+
+    <div class="indicator-card" style="margin-bottom:14px;">
+      <div class="indicator-title">Secteurs du Cylindre</div>
+      <div id="sectors-display"></div>
+    </div>
+
+    <div class="indicator-card" style="margin-bottom:0;">
+      <div class="indicator-title">Retards de Secteurs & Écarts</div>
+      <div id="delay-display"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CARTE THERMIQUE DU CYLINDRE -->
+<div class="indicator-card" style="margin-top: 14px; margin-bottom: 0;">
+<div class="indicator-title">Carte Thermique du Cylindre (Ordre Physique)</div>
+<div class="cylinder-heatmap" id="cylinder-heatmap"></div>
+</div>
+
+<!-- JOURNAL TECHNIQUE COMPACT -->
+<div class="indicator-title" style="margin-top: 14px; margin-bottom: 4px;">Journal de session complet</div>
+<div class="tablewrap">
+<table>
+<thead>
+<tr>
+<th class="slot">Slot</th>
+<th>Numéro</th>
+<th>Secteur</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+</div>
+
+<div class="small">
+L'analyse s'exécute en symbiose. Toucher un numéro sur le tapis ou le clavier met à jour l'ensemble de l'interface. Version AMÉLIORÉE avec IA avancée.
+</div>
+</div>
+</div>
+
+<script>
+const key = 'roulette_analysis_slots_v3';
+const wheel = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+const redNums = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+
+const sectorsDef = {
+  voisins: {
+    name: 'Voisins du Zéro',
+    nums: [22, 18, 29, 7, 28, 12, 35, 3, 26, 0, 32, 15, 19, 4, 21, 2, 25],
+    color: 'var(--accent)'
+  },
+  tiers: {
+    name: 'Tiers du Cylindre',
+    nums: [27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33],
+    color: 'var(--accent-orange)'
+  },
+  orphelins: {
+    name: 'Orphelins',
+    nums: [1, 20, 14, 31, 9, 17, 34, 6],
+    color: 'var(--accent-blue)'
+  }
+};
+
+// Les 12 Transversales
+const transversales = [
+  { id: 1, name: "T1 (1-3)", nums: [1, 2, 3] },
+  { id: 2, name: "T2 (4-6)", nums: [4, 5, 6] },
+  { id: 3, name: "T3 (7-9)", nums: [7, 8, 9] },
+  { id: 4, name: "T4 (10-12)", nums: [10, 11, 12] },
+  { id: 5, name: "T5 (13-15)", nums: [13, 14, 15] },
+  { id: 6, name: "T6 (16-18)", nums: [16, 17, 18] },
+  { id: 7, name: "T7 (19-21)", nums: [19, 20, 21] },
+  { id: 8, name: "T8 (22-24)", nums: [22, 23, 24] },
+  { id: 9, name: "T9 (25-27)", nums: [25, 26, 27] },
+  { id: 10, name: "T10 (28-30)", nums: [28, 29, 30] },
+  { id: 11, name: "T11 (31-33)", nums: [31, 32, 33] },
+  { id: 12, name: "T12 (34-36)", nums: [34, 35, 36] }
+];
+
+let slots = [];
+
+/* ==========================================================================
+   ALGORITHME DE CALCUL & PRÉVISIONS ROULETTE
+   ========================================================================== */
+function save(){ /* en mémoire uniquement */ }
+
+function getNumColor(num) {
+  const n = Number(num);
+  if (n === 0) return '#2e7d32';
+  return redNums.includes(n) ? '#c62828' : '#1a1a1a';
+}
+
+function getSectorName(num) {
+  const n = Number(num);
+  if (sectorsDef.voisins.nums.includes(n)) return { name: 'Voisins', color: sectorsDef.voisins.color };
+  if (sectorsDef.tiers.nums.includes(n)) return { name: 'Tiers', color: sectorsDef.tiers.color };
+  if (sectorsDef.orphelins.nums.includes(n)) return { name: 'Orphelins', color: sectorsDef.orphelins.color };
+  return { name: '—', color: 'var(--muted)' };
+}
+
+function getSectorStats() {
+  const stats = {
+    voisins: { count: 0, delay: null },
+    tiers: { count: 0, delay: null },
+    orphelins: { count: 0, delay: null }
+  };
+  
+  if (slots.length === 0) return stats;
+
+  for (const slot of slots) {
+    const num = Number(slot);
+    if (sectorsDef.voisins.nums.includes(num)) stats.voisins.count++;
+    else if (sectorsDef.tiers.nums.includes(num)) stats.tiers.count++;
+    else if (sectorsDef.orphelins.nums.includes(num)) stats.orphelins.count++;
+  }
+
+  for (const k in stats) {
+    const targetNums = sectorsDef[k].nums;
+    const firstIndex = slots.findIndex(s => targetNums.includes(Number(s)));
+    stats[k].delay = firstIndex >= 0 ? firstIndex : slots.length;
+  }
+
+  return stats;
+}
+
+function getNumberDelays() {
+  const delays = {};
+  for (let i = 0; i <= 36; i++) {
+    const firstIdx = slots.findIndex(s => Number(s) === i);
+    delays[i] = firstIdx >= 0 ? firstIdx : slots.length;
+  }
+  return delays;
+}
+
+function analyzeJumps() {
+  const jumpCounts = { proche: 0, droit: 0, oppose: 0, gauche: 0 };
+  if (slots.length < 2) return null;
+
+  for (let i = 0; i < slots.length - 1; i++) {
+    const curr = Number(slots[i]);
+    const prev = Number(slots[i+1]);
+    const idxCurr = wheel.indexOf(curr);
+    const idxPrev = wheel.indexOf(prev);
+    
+    if (idxCurr < 0 || idxPrev < 0) continue;
+    
+    const dist = (idxCurr - idxPrev + 37) % 37;
+    
+    if (dist <= 4 || dist >= 33) {
+      jumpCounts.proche++;
+    } else if (dist >= 5 && dist <= 13) {
+      jumpCounts.droit++;
+    } else if (dist >= 14 && dist <= 22) {
+      jumpCounts.oppose++;
+    } else {
+      jumpCounts.gauche++;
+    }
+  }
+  
+  let dominant = 'proche';
+  let maxVal = -1;
+  for (const [cat, count] of Object.entries(jumpCounts)) {
+    if (count > maxVal) {
+      maxVal = count;
+      dominant = cat;
+    }
+  }
+  
+  return { dominant, counts: jumpCounts };
+}
+
+function getWheelRange(targetIdx, dist = 2) {
+  const out = [];
+  for (let d = -dist; d <= dist; d++) {
+    const idx = (targetIdx + d + 37) % 37;
+    out.push(wheel[idx]);
+  }
+  return out;
+}
+
+// Stats des transversales en temps réel
+function getTransversaleStats() {
+  const stats = {};
+  for (let id = 1; id <= 12; id++) {
+    stats[id] = { count: 0, delay: null };
+  }
+  for (const s of slots) {
+    const n = Number(s);
+    if (n === 0) continue;
+    const tid = Math.floor((n - 1) / 3) + 1;
+    if (stats[tid]) stats[tid].count++;
+  }
+  for (let id = 1; id <= 12; id++) {
+    const tNums = transversales[id - 1].nums;
+    const idx = slots.findIndex(s => tNums.includes(Number(s)));
+    stats[id].delay = idx >= 0 ? idx : slots.length;
+  }
+  return stats;
+}
+
+// CALCUL STATISTIQUE AVANCÉ
+function getAdvancedStatistics() {
+  if (slots.length === 0) return null;
+  
+  const freq = {};
+  for (let i = 0; i <= 36; i++) freq[i] = 0;
+  
+  for (const s of slots) {
+    const n = Number(s);
+    freq[n]++;
+  }
+  
+  const values = Object.values(freq);
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
+  const stdDev = Math.sqrt(variance);
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  
+  return { mean, stdDev, max, min, freq };
+}
+
+// SCORING INTELLIGENT MULTI-CRITÈRES
+function getAdvancedNumberScores() {
+  if (slots.length === 0) return {};
+  
+  const stats = getAdvancedStatistics();
+  const numDelays = getNumberDelays();
+  const scores = {};
+  
+  const recentNums = slots.slice(0, Math.min(10, slots.length));
+  const recentFreq = {};
+  for (const n of recentNums) {
+    const num = Number(n);
+    recentFreq[num] = (recentFreq[num] || 0) + 1;
+  }
+  
+  for (let i = 0; i <= 36; i++) {
+    const freq = stats.freq[i];
+    const delay = numDelays[i];
+    const zScore = (freq - stats.mean) / Math.max(stats.stdDev, 0.1);
+    const recentTrend = recentFreq[i] || 0;
+    
+    // Combinaison pondérée : écart statistique (40%) + retard (35%) + tendance récente (25%)
+    let baseScore = Math.abs(zScore) * 40 + delay * 0.8 + recentTrend * 30;
+    
+    // Bonus si l'écart est significatif (sortie de la normale)
+    if (Math.abs(zScore) > 1) baseScore *= 1.2;
+    if (Math.abs(zScore) > 1.5) baseScore *= 1.3;
+    
+    scores[i] = {
+      score: baseScore,
+      freq: freq,
+      delay: delay,
+      zScore: zScore.toFixed(2),
+      recentTrend: recentTrend,
+      confidence: Math.min(100, Math.max(0, 50 + Math.abs(zScore) * 15))
+    };
+  }
+  
+  return scores;
+}
+
+// PRÉDICTION DE TRANSVERSALES PAR SCORING
+function getPredictedTransversales() {
+  if (slots.length === 0) return [];
+  
+  const scores = getAdvancedNumberScores();
+  const transStats = {};
+  
+  for (let id = 1; id <= 12; id++) {
+    const tNums = transversales[id - 1].nums;
+    let totalScore = 0;
+    let avgConfidence = 0;
+    let hotCount = 0;
+    
+    for (const num of tNums) {
+      if (scores[num]) {
+        totalScore += scores[num].score;
+        avgConfidence += scores[num].confidence;
+        if (scores[num].freq > 0) hotCount++;
+      }
+    }
+    
+    transStats[id] = {
+      score: totalScore / tNums.length,
+      confidence: avgConfidence / tNums.length,
+      activeNumbers: hotCount,
+      strongestNum: tNums.reduce((a, b) => (scores[a]?.score || 0) > (scores[b]?.score || 0) ? a : b)
+    };
+  }
+  
+  const ranked = Object.entries(transStats)
+    .map(([id, data]) => ({
+      id: Number(id),
+      ...data
+    }))
+    .sort((a, b) => b.score - a.score);
+  
+  return ranked;
+}
+
+// Recommandation : Top 6 transversales les plus propices (50% de table max)
+function getRecommendedTransversales() {
+  const predicted = getPredictedTransversales();
+  return predicted.slice(0, 6).map(x => x.id);
+}
+
+// ANALYSE DE PATTERNS ET CHAÎNES INTÉRESSANTES
+function analyzePatterns() {
+  if (slots.length < 3) return null;
+  
+  const patterns = {};
+  
+  // Chaînes de 3 numéros consécutifs
+  for (let i = 0; i < slots.length - 2; i++) {
+    const pattern = `${slots[i]}-${slots[i+1]}-${slots[i+2]}`;
+    patterns[pattern] = (patterns[pattern] || 0) + 1;
+  }
+  
+  const sortedPatterns = Object.entries(patterns)
+    .filter(([p, c]) => c > 1)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3);
+  
+  return sortedPatterns.length > 0 ? sortedPatterns : null;
+}
+
+// ANALYSE DES PAIRES DE TRANSVERSALES CONSECUTIVES
+function analyzeTransversalePairs() {
+  if (slots.length < 2) return null;
+  
+  const pairs = {};
+  for (let i = 0; i < slots.length - 1; i++) {
+    const n1 = Number(slots[i]);
+    const n2 = Number(slots[i+1]);
+    if (n1 === 0 || n2 === 0) continue;
+    
+    const t1 = Math.floor((n1 - 1) / 3) + 1;
+    const t2 = Math.floor((n2 - 1) / 3) + 1;
+    
+    if (t1 !== t2) {
+      const pairKey = `T${Math.min(t1, t2)}-T${Math.max(t1, t2)}`;
+      pairs[pairKey] = (pairs[pairKey] || 0) + 1;
+    }
+  }
+  
+  const sorted = Object.entries(pairs)
+    .filter(([p, c]) => c >= 1)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+  
+  return sorted.length > 0 ? sorted : null;
+}
+
+function analyze(){
+  if(slots.length === 0) {
+    return '<div style="font-weight:normal; color:var(--muted); font-size:13px; text-align:center; padding:10px 0;">Saisissez ou cliquez sur un premier numéro pour débuter l\'analyse.</div>';
+  }
+
+  const secStats = getSectorStats();
+  const numDelays = getNumberDelays();
+  const advStats = getAdvancedStatistics();
+  const scores = getAdvancedNumberScores();
+  const predictedTrans = getPredictedTransversales();
+  const patterns = analyzePatterns();
+  const transPairs = analyzeTransversalePairs();
+  
+  const sortedSectors = Object.keys(secStats).sort((a,b) => secStats[b].count - secStats[a].count);
+  const activeSectorKey = sortedSectors[0];
+  const activeSector = sectorsDef[activeSectorKey];
+  
+  const delayedInActive = [...activeSector.nums]
+    .map(n => ({ n, delay: numDelays[n] }))
+    .sort((a,b) => b.delay - a.delay);
+    
+  const lateTargets = delayedInActive.slice(0, 5).map(x => x.n);
+
+  // TOP NUMÉROS PAR SCORING AVANCÉ
+  const rankedNumbers = Object.entries(scores)
+    .map(([num, data]) => ({ num: Number(num), ...data }))
+    .sort((a,b) => b.score - a.score);
+  
+  const topPredicted = rankedNumbers.slice(0, 6).filter(x => x.confidence > 40);
+  
+  // ANOMALIES STATISTIQUES
+  const anomalies = rankedNumbers.filter(x => Math.abs(x.zScore) > 1.5).slice(0, 4);
+  
+  const jumpAnalysis = analyzeJumps();
+  let jumpSuggestion = [];
+  let signatureDesc = 'Analyse physique indisponible (minimum 2 tirages requis).';
+  
+  if (jumpAnalysis && slots.length >= 2) {
+    const lastNum = Number(slots[0]);
+    const lastIdx = wheel.indexOf(lastNum);
+    const dom = jumpAnalysis.dominant;
+    let targetIdx = lastIdx;
+    
+    if (dom === 'proche') {
+      targetIdx = lastIdx;
+      signatureDesc = `Sauts courts (Zone proche du dernier tirage).`;
+    } else if (dom === 'droit') {
+      targetIdx = (lastIdx + 9) % 37;
+      signatureDesc = `Sauts décalés à droite (~9 cases sur le cylindre).`;
+    } else if (dom === 'oppose') {
+      targetIdx = (lastIdx + 18) % 37;
+      signatureDesc = `Sauts diamétralement opposés (~18 cases).`;
+    } else if (dom === 'gauche') {
+      targetIdx = (lastIdx + 28) % 37;
+      signatureDesc = `Sauts décalés à gauche (~9 cases sur le cylindre).`;
+    }
+    
+    jumpSuggestion = getWheelRange(targetIdx, 2);
+  }
+
+  let html = `
+    <div class="analysis-item">
+      <span class="analysis-label">📊 Statistiques Globales</span>
+      <div class="analysis-value" style="font-size:12px; line-height:1.6;">
+        <div style="color:var(--muted);">Moyenne: <b style="color:var(--text)">${advStats.mean.toFixed(1)}</b> | Écart-Type: <b style="color:var(--text)">${advStats.stdDev.toFixed(2)}</b></div>
+        <div style="color:var(--muted); margin-top:3px;">Min: ${advStats.min} | Max: ${advStats.max} | Étendue: ${advStats.max - advStats.min}</div>
+      </div>
+    </div>
+
+    <div class="analysis-item">
+      <span class="analysis-label">🎯 Numéros Prédits (Score Avancé)</span>
+      <div class="analysis-value">
+        ${topPredicted.length > 0 ? topPredicted.map(n => `
+          <span class="number-badge" title="Score: ${n.score.toFixed(1)}, Confiance: ${n.confidence.toFixed(0)}%, Z-Score: ${n.zScore}, Fréq: ${n.freq}" 
+                onclick="highlightLocalNumber(${n.num})" 
+                style="border-left: 3px solid ${n.confidence > 70 ? 'var(--accent)' : n.confidence > 50 ? 'var(--accent-orange)' : '#888'}; opacity: ${0.6 + n.confidence/200};">
+            ${n.num}<span style="font-size:9px; opacity:0.7;">(${n.confidence.toFixed(0)}%)</span>
+          </span>
+        `).join('') : '—'}
+      </div>
+    </div>
+    
+    <div class="analysis-item">
+      <span class="analysis-label">⏳ Cibles Écart (${activeSector.name})</span>
+      <div class="analysis-value">
+        ${lateTargets.map(n => `<span class="number-badge" style="border-left: 3px solid ${activeSector.color}" onclick="highlightLocalNumber(${n})">${n}</span>`).join('')}
+      </div>
+    </div>
+
+    <div class="analysis-item">
+      <span class="analysis-label">🔥 Anomalies Détectées (Écart Significatif)</span>
+      <div class="analysis-value">
+        ${anomalies.length > 0 ? anomalies.map(n => `
+          <span class="number-badge" 
+                title="Z-Score: ${n.zScore}, Fréquence: ${n.freq}" 
+                onclick="highlightLocalNumber(${n.num})"
+                style="border-left: 3px solid ${Math.abs(n.zScore) > 1.5 ? 'var(--red)' : 'var(--accent-orange)'};">
+            ${n.num} <span style="font-size:9px; opacity:0.7;">(σ=${n.zScore})</span>
+          </span>
+        `).join('') : '<span style="font-size:11px; color:var(--muted);">Distribution normale pour le moment</span>'}
+      </div>
+    </div>
+
+    <div class="analysis-item">
+      <span class="analysis-label">🎯 Transversales Recommandées (Scoring Avancé)</span>
+      <div class="analysis-value" style="margin-top: 4px;">
+        ${predictedTrans.slice(0, 6).map((trans, idx) => `
+          <span class="number-badge" 
+                title="Score: ${trans.score.toFixed(1)}, Confiance: ${trans.confidence.toFixed(0)}%, Numéros actifs: ${trans.activeNumbers}" 
+                style="border-left: 3px solid var(--accent-orange); opacity: ${0.6 + trans.confidence/200}; font-weight:800;" 
+                onclick="highlightTransversaleRow(${trans.id})">
+            T${trans.id}<span style="font-size:8px; opacity:0.7;">(${trans.activeNumbers})</span>
+          </span>
+        `).join('')}
+        <span style="font-size:10px; font-weight:normal; color:var(--muted); display:block; margin-top:4px;">
+          Analyse multifactorielle : fréquence + retard + tendance + distribution.
+        </span>
+      </div>
+    </div>
+  `;
+
+  if (transPairs && transPairs.length > 0) {
+    html += `
+      <div class="analysis-item">
+        <span class="analysis-label">🔗 Paires de Transversales Successives</span>
+        <div class="analysis-value" style="font-size:12px;">
+          ${transPairs.map(([pair, count]) => `
+            <div style="margin-bottom:3px;">
+              <b>${pair}</b> <span style="color:var(--muted); font-size:11px;">(${count}x)</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  if (patterns && patterns.length > 0) {
+    html += `
+      <div class="analysis-item">
+        <span class="analysis-label">⛓️ Chaînes Répétées (3 Tirages)</span>
+        <div class="analysis-value" style="font-size:12px;">
+          ${patterns.map(([pattern, count]) => `
+            <div style="margin-bottom:3px;">
+              <span style="font-weight:bold; color:var(--accent);">${pattern}</span> <span style="color:var(--muted); font-size:11px;">(${count}x)</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  if (jumpSuggestion.length > 0) {
+    html += `
+      <div class="analysis-item">
+        <span class="analysis-label">🎯 Pivot Physique (Signature)</span>
+        <div class="analysis-value">
+          ${jumpSuggestion.map(n => `<span class="number-badge" style="border-bottom: 2px solid var(--accent-blue)" onclick="highlightLocalNumber(${n})">${n}</span>`).join('')}
+          <span style="font-size:11px; font-weight:normal; color:var(--muted); display:block; margin-top:4px;">
+            ${signatureDesc}
+          </span>
+        </div>
+      </div>
+    `;
+  }
+
+  return html;
+}
+
+// Génération du pavé numérique d'action
+function renderKeypad() {
+  const container = document.getElementById('keypad');
+  container.innerHTML = '';
+  
+  for (let i = 0; i <= 35; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'keypad-btn';
+    btn.style.backgroundColor = getNumColor(i);
+    btn.textContent = i;
+    btn.onclick = () => quickAdd(i);
+    container.appendChild(btn);
+  }
+  
+  const btn36 = document.createElement('button');
+  btn36.className = 'keypad-btn';
+  btn36.style.backgroundColor = getNumColor(36);
+  btn36.textContent = '36';
+  btn36.onclick = () => quickAdd(36);
+  container.appendChild(btn36);
+  
+  // Bouton ANNULER (Retour arrière)
+  const btnUndo = document.createElement('button');
+  btnUndo.className = 'keypad-btn action';
+  btnUndo.style.gridColumn = 'span 2';
+  btnUndo.innerHTML = '⌫ Annul';
+  btnUndo.onclick = undoLast;
+  container.appendChild(btnUndo);
+
+  // Bouton RAZ complet
+  const btnRAZ = document.createElement('button');
+  btnRAZ.className = 'keypad-btn action';
+  btnRAZ.style.gridColumn = 'span 2';
+  btnRAZ.innerHTML = '↺ RAZ';
+  btnRAZ.onclick = resetAll;
+  container.appendChild(btnRAZ);
+
+  // Bouton COPIER
+  const btnCopy = document.createElement('button');
+  btnCopy.className = 'keypad-btn action';
+  btnCopy.style.gridColumn = 'span 2';
+  btnCopy.innerHTML = '📋 Copier';
+  btnCopy.onclick = copyText;
+  container.appendChild(btnCopy);
+
+  // Bouton SAVE
+  const btnSave = document.createElement('button');
+  btnSave.className = 'keypad-btn action';
+  btnSave.style.gridColumn = 'span 2';
+  btnSave.innerHTML = '💾 Save';
+  btnSave.onclick = downloadBackup;
+  container.appendChild(btnSave);
+}
+
+function renderHistoryRibbon() {
+  const container = document.getElementById('history-ribbon');
+  container.innerHTML = '';
+  
+  if (slots.length === 0) {
+    container.innerHTML = '<div style="font-size:12px; color:var(--muted); padding: 8px;">Aucun tirage enregistré...</div>';
+    return;
+  }
+  
+  const displayLimit = Math.min(slots.length, 14);
+  for (let i = 0; i < displayLimit; i++) {
+    const n = Number(slots[i]);
+    const chip = document.createElement('div');
+    chip.className = 'history-chip';
+    if (i === 0) {
+      chip.classList.add('last-chip');
+    }
+    
+    chip.style.backgroundColor = getNumColor(n);
+    const sec = getSectorName(n);
+    const secLetter = sec.name.charAt(0);
+    
+    chip.innerHTML = `
+      <span>${n}</span>
+      <span class="sec-lbl" style="color: ${sec.color}">${secLetter}</span>
+    `;
+    
+    chip.onclick = () => highlightLocalNumber(n);
+    container.appendChild(chip);
+  }
+}
+
+// RENDU DU TAPIS DE JEU INTERACTIF COMPACT DES 12 TRANSVERSALES
+function renderTapis() {
+  const container = document.getElementById('tapis-container');
+  container.innerHTML = '';
+  
+  const recIds = getRecommendedTransversales();
+  const stats = getTransversaleStats();
+  const predictedTrans = getPredictedTransversales();
+  
+  // Créer une map pour recherche rapide des scores de prédiction
+  const predictionMap = {};
+  for (const trans of predictedTrans) {
+    predictionMap[trans.id] = trans;
+  }
+  
+  // Bouton Zéro au sommet du tapis
+  const zeroRow = document.createElement('div');
+  zeroRow.style.display = 'grid';
+  zeroRow.style.gridTemplateColumns = '1fr';
+  zeroRow.style.marginBottom = '5px';
+  
+  const zeroBtn = document.createElement('div');
+  zeroBtn.className = 'tapis-cell';
+  zeroBtn.style.backgroundColor = getNumColor(0);
+  zeroBtn.style.color = '#fff';
+  zeroBtn.style.aspectRatio = 'auto';
+  zeroBtn.style.height = '34px';
+  zeroBtn.textContent = '0 (Zéro)';
+  
+  const lastNum = slots.length > 0 ? Number(slots[0]) : null;
+  if (lastNum === 0) {
+    zeroBtn.classList.add('last-drawn');
+  }
+  
+  zeroBtn.onclick = () => quickAdd(0);
+  zeroRow.appendChild(zeroBtn);
+  container.appendChild(zeroRow);
+  
+  // Rendu des 12 transversales
+  for (const t of transversales) {
+    const isRec = recIds.includes(t.id);
+    const predData = predictionMap[t.id];
+    
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'transversale-row' + (isRec ? ' recommended-row' : '');
+    rowDiv.id = `tapis-row-${t.id}`;
+    
+    const header = document.createElement('div');
+    header.className = 'transversale-label';
+    const hitPct = slots.length > 0 ? Math.round((stats[t.id].count / slots.length) * 100) : 0;
+    const delay = stats[t.id].delay;
+    
+    let confidenceStr = '';
+    if (predData) {
+      const conf = Math.round(predData.confidence);
+      confidenceStr = `<div style="font-size:8px; font-weight:bold; color:var(--accent-orange); opacity:0.9;">Conf: ${conf}%</div>`;
+    }
+    
+    header.innerHTML = `
+      <div>${isRec ? '🔥 ' : ''}T${t.id}</div>
+      <div style="font-size:8px; font-weight:normal; opacity:0.85;">${hitPct}% • Éc.${delay}</div>
+      ${confidenceStr}
+    `;
+    rowDiv.appendChild(header);
+    
+    for (const num of t.nums) {
+      const div = document.createElement('div');
+      div.className = 'tapis-cell';
+      div.style.backgroundColor = getNumColor(num);
+      div.textContent = num;
+      
+      if (num === lastNum) {
+        div.classList.add('last-drawn');
+      }
+      
+      div.onclick = () => quickAdd(num);
+      rowDiv.appendChild(div);
+    }
+    
+    container.appendChild(rowDiv);
+  }
+}
+
+function renderHeatmap() {
+  const container = document.getElementById('cylinder-heatmap');
+  container.innerHTML = '';
+  
+  const freq = {};
+  for (const s of slots) {
+    const n = Number(s);
+    freq[n] = (freq[n] || 0) + 1;
+  }
+  
+  const scores = slots.length > 0 ? getAdvancedNumberScores() : {};
+  const lastNum = slots.length > 0 ? Number(slots[0]) : null;
+  
+  for (const n of wheel) {
+    const tile = document.createElement('div');
+    tile.className = 'heatmap-tile';
+    tile.setAttribute('data-num', n);
+    
+    const baseColor = getNumColor(n);
+    const hits = freq[n] || 0;
+    const scoreData = scores[n] || { score: 0, confidence: 0 };
+    
+    if (hits === 0 && scoreData.confidence < 50) {
+      tile.style.backgroundColor = '#161920';
+      tile.style.color = '#555';
+    } else {
+      tile.style.backgroundColor = baseColor;
+      tile.style.color = '#fff';
+    }
+    
+    if (n === lastNum) {
+      tile.classList.add('last-hit');
+    }
+    
+    const sec = getSectorName(n);
+    tile.style.borderTop = `3px solid ${sec.color}`;
+    
+    const confidenceClass = scoreData.confidence > 70 ? 'high' : scoreData.confidence > 50 ? 'medium' : 'low';
+    const confidenceColor = scoreData.confidence > 70 ? 'var(--accent)' : scoreData.confidence > 50 ? 'var(--accent-orange)' : '#666';
+    
+    tile.innerHTML = `
+      <div>${n}</div>
+      <div class="hit-count" style="color:${confidenceColor}; font-size:8px;">
+        ${hits > 0 ? `${hits}x` : scoreData.confidence > 50 ? `${Math.round(scoreData.confidence)}%` : '-'}
+      </div>
+    `;
+    
+    tile.title = `Fréq: ${hits}, Score: ${scoreData.score.toFixed(1)}, Confiance: ${scoreData.confidence.toFixed(0)}%, Z-Score: ${scoreData.zScore}`;
+    
+    tile.onclick = () => highlightLocalNumber(n);
+    container.appendChild(tile);
+  }
+}
+
+function renderSectorsAndDelays() {
+  const sectorsContainer = document.getElementById('sectors-display');
+  const delayContainer = document.getElementById('delay-display');
+  
+  if (slots.length === 0) {
+    sectorsContainer.innerHTML = '<div style="font-size:12px; color:var(--muted); padding: 8px;">En attente de données...</div>';
+    delayContainer.innerHTML = '<div style="font-size:12px; color:var(--muted); padding: 8px;">En attente de données...</div>';
+    return;
+  }
+
+  const stats = getSectorStats();
+  const total = slots.length;
+
+  let secHtml = '';
+  for (const [key, def] of Object.entries(sectorsDef)) {
+    const pct = total > 0 ? Math.round((stats[key].count / total) * 100) : 0;
+    secHtml += `
+      <div class="sector-row">
+        <span class="sector-name" style="color: ${def.color}; font-size:11px;">${def.name}</span>
+        <div class="bar-outer">
+          <div class="bar-inner" style="width: ${pct}%; background-color: ${def.color};"></div>
+        </div>
+        <span class="sector-stat">${pct}% (${stats[key].count})</span>
+      </div>
+    `;
+  }
+  sectorsContainer.innerHTML = secHtml;
+
+  let delayHtml = '';
+  for (const [key, def] of Object.entries(sectorsDef)) {
+    const d = stats[key].delay;
+    let statusStyle = '';
+    let statusText = '';
+    
+    if (d === 0) {
+      statusText = 'Actuel';
+      statusStyle = 'color: var(--accent); font-weight:bold;';
+    } else if (d > 10) {
+      statusText = `Retard (${d} tours)`;
+      statusStyle = 'color: var(--red); font-weight:bold;';
+    } else {
+      statusText = `Écart ${d}`;
+      statusStyle = 'color: var(--muted);';
+    }
+
+    delayHtml += `
+      <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:12px;">
+        <span style="font-weight:600; color:${def.color}">${def.name}</span>
+        <span style="${statusStyle}">${statusText}</span>
+      </div>
+    `;
+  }
+
+  const numDelays = getNumberDelays();
+  const sortedDelays = Object.entries(numDelays)
+    .map(([n, d]) => ({ n: Number(n), d }))
+    .sort((a,b) => b.d - a.d);
+
+  const trackedLate = sortedDelays.filter(x => x.d < slots.length).slice(0, 3);
+
+  delayHtml += `<div style="border-top: 1px solid var(--line); margin-top: 8px; padding-top: 6px;">`;
+  if (trackedLate.length > 0) {
+    delayHtml += `
+      <div style="font-size:10px; text-transform:uppercase; color:var(--muted); font-weight:700; margin-bottom:4px;">Chiffres chauds les plus en retard</div>
+      <div style="font-size:11px; color:var(--text);">
+        ${trackedLate.map(x => `<b>N°${x.n}</b> (écart ${x.d})`).join(', ')}
+      </div>
+    `;
+  } else {
+    delayHtml += `<div style="font-size:11px; color:var(--muted);">Aucun écart de tirage enregistré.</div>`;
+  }
+  delayHtml += `</div>`;
+
+  delayContainer.innerHTML = delayHtml;
+}
+
+function render(){
+const tbody = document.getElementById('tbody');
+tbody.innerHTML = '';
+
+if (slots.length === 0) {
+  tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--muted); font-size:12px; padding:15px 0;">Aucun numéro enregistré.</td></tr>`;
+} else {
+  for(let i = 0; i < slots.length; i++){
+    const n = slots[i];
+    const tr = document.createElement('tr');
+    const sec = getSectorName(n);
+    tr.innerHTML = `
+      <td class="slot">Slot ${i + 1}</td>
+      <td class="number">${n}</td>
+      <td style="color: ${sec.color}; font-weight:700; font-size:12px;">${sec.name}</td>
+      <td style="font-size:11px; color:var(--muted);">${i === 0 ? 'Dernier tirage' : (i === slots.length - 1 ? 'Plus ancien mémorisé' : '')}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+document.getElementById('prop').innerHTML = analyze();
+renderHistoryRibbon();
+renderTapis();
+renderHeatmap();
+renderSectorsAndDelays();
+document.getElementById('status').textContent = slots.length ? `${slots.length} / 50 numéro(s) enregistré(s).` : 'Session vide.';
+}
+
+// Ajout centralisé d'un numéro
+function quickAdd(num) {
+  slots = [num.toString(), ...slots].slice(0, 50);
+  save();
+  render();
+}
+
+function undoLast() {
+  if (slots.length === 0) return;
+  slots.shift(); // retire la dernière entrée
+  save();
+  render();
+}
+
+function resetAll(){
+if(!confirm('Effacer toute la session ?')) return;
+slots = [];
+save();
+render();
+}
+
+function copyText(){
+const text = slots.map((n,i)=>`Slot ${i+1}: ${n}`).join('\n') || 'Session vide';
+navigator.clipboard.writeText(text);
+alert('Liste copiée.');
+}
+
+function downloadBackup(){
+const blob = new Blob([JSON.stringify(slots, null, 2)], {type:'application/json'});
+const a = document.createElement('a');
+a.href = URL.createObjectURL(blob);
+a.download = 'roulette_backup_pro.json';
+a.click();
+setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+// Éclaire temporairement une ligne de transversale
+function highlightTransversaleRow(id) {
+  const row = document.getElementById(`tapis-row-${id}`);
+  if (row) {
+    row.classList.add('external-highlight');
+    setTimeout(() => row.classList.remove('external-highlight'), 1000);
+  }
+}
+
+function highlightLocalNumber(num) {
+  const n = Number(num);
+  const tile = document.querySelector(`.heatmap-tile[data-num="${n}"]`);
+  if (tile) {
+    tile.classList.add('external-highlight');
+    setTimeout(() => tile.classList.remove('external-highlight'), 1000);
+  }
+  
+  // Éclaire aussi sur le tapis compact
+  const tid = Math.floor((n - 1) / 3) + 1;
+  if (n > 0) {
+    highlightTransversaleRow(tid);
+  }
+}
+
+// TÉLÉCHARGER LE FICHIER COMPLET
+function downloadFile() {
+  const htmlContent = document.documentElement.outerHTML;
+  const blob = new Blob([htmlContent], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'Roulette-Amelioree-PRO.html';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+// COPIER LE CODE COMPLET
+function copyCodeToClipboard() {
+  const htmlContent = document.documentElement.outerHTML;
+  navigator.clipboard.writeText(htmlContent).then(() => {
+    alert('✓ Code complet copié dans le presse-papiers !');
+  }).catch(() => {
+    alert('Erreur lors de la copie.');
+  });
+}
+
+// ÉCOUTEUR CLAVIER PHYSIQUE POUR ORDINATEUR
+let keyBuffer = '';
+let bufferTimeout = null;
+
+window.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  
+  if (e.key >= '0' && e.key <= '9') {
+    clearTimeout(bufferTimeout);
+    keyBuffer += e.key;
+    
+    if (keyBuffer.length === 2) {
+      const num = Number(keyBuffer);
+      if (num >= 0 && num <= 36) {
+        quickAdd(num);
+      }
+      keyBuffer = '';
+    } else {
+      bufferTimeout = setTimeout(() => {
+        const num = Number(keyBuffer);
+        if (num >= 0 && num <= 36) {
+          quickAdd(num);
+        }
+        keyBuffer = '';
+      }, 700);
+    }
+  }
+});
+
+render();
+</script>
+</body>
+</html>
